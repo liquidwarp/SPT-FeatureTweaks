@@ -24,6 +24,9 @@ public record ModConfig
     [JsonPropertyName("disableTraderHealing")]
     public required bool DisableTraderHealing { get; init; }
 
+    [JsonPropertyName("ammoStatsInName")]
+    public required bool AmmoStatsInName { get; init; }
+
     public static readonly ModConfig Default = new()
     {
         DisableFleaGeneratedOffers = true,
@@ -31,6 +34,7 @@ public record ModConfig
         FleaRequiredLevelOne = true,
         DisableInsurance = true,
         DisableTraderHealing = true,
+        AmmoStatsInName = true,
     };
 }
 
