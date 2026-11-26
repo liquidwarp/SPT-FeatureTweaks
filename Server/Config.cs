@@ -39,21 +39,25 @@ public record ModConfig
 }
 
 [Injectable(InjectionType.Singleton)]
-public class ConfigService(ModHelper modHelper, FileUtil fileUtil, JsonUtil jsonUtil)
+public class ConfigService
 {
-    public ModConfig Config { get; } = Load(modHelper, fileUtil, jsonUtil);
+    public ModConfig Config { get; }
 
-    private static ModConfig Load(ModHelper modHelper, FileUtil fileUtil, JsonUtil jsonUtil)
+    public ConfigService(ModHelper modHelper, FileUtil fileUtil, JsonUtil jsonUtil)
+        : this(modHelper.GetAbsolutePathToModFolder(Assembly.GetExecutingAssembly()), fileUtil, jsonUtil) { }
+
+    internal ConfigService(string modFolder, FileUtil fileUtil, JsonUtil jsonUtil)
     {
-        var path = Path.Combine(modHelper.GetAbsolutePathToModFolder(Assembly.GetExecutingAssembly()), "config.json");
+        var path = Path.Combine(modFolder, "config.json");
 
         if (!fileUtil.FileExists(path))
         {
             fileUtil.WriteFile(path, jsonUtil.Serialize(ModConfig.Default, indented: true)!);
-            return ModConfig.Default;
+            Config = ModConfig.Default;
+            return;
         }
 
-        return jsonUtil.Deserialize<ModConfig>(fileUtil.ReadFile(path))
+        Config = jsonUtil.Deserialize<ModConfig>(fileUtil.ReadFile(path))
             ?? throw new InvalidDataException($"Invalid config file: {path}");
     }
 }

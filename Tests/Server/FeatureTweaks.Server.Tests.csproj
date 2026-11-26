@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+    </PropertyGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\..\Server\FeatureTweaks.Server.csproj" />
+        <AssemblyMetadata Include="SPTPath" Value="$(SPTPath)" />
+    </ItemGroup>
+    <!-- Run against the same database models as the installed server. -->
+    <Target Name="UseInstalledServerCore" AfterTargets="Build">
+        <Copy SourceFiles="$(SPTPath)\SPT_Runtime\SPTarkov.Server.Core.dll" DestinationFolder="$(TargetDir)" />
+    </Target>
+</Project>

@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net472</TargetFramework>
+        <PlatformTarget>x64</PlatformTarget>
+        <ManagedDir>$(SPTPath)\EscapeFromTarkov_Data\Managed</ManagedDir>
+    </PropertyGroup>
+    <ItemGroup>
+        <!-- Unity's netstandard facade lets the desktop CLR run the game's managed client code. -->
+        <Reference Include="netstandard" HintPath="$(ManagedDir)\netstandard.dll" Private="true" />
+        <Reference Include="Assembly-CSharp" HintPath="$(ManagedDir)\Assembly-CSharp.dll" />
+        <Reference Include="UnityEngine" HintPath="$(ManagedDir)\UnityEngine.dll" />
+        <Reference Include="UnityEngine.CoreModule" HintPath="$(ManagedDir)\UnityEngine.CoreModule.dll" />
+        <!-- The desktop test host requires a fully signed Json.NET assembly. -->
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+        <Reference Include="0Harmony" HintPath="$(SPTPath)\BepInEx\core\0Harmony.dll" />
+        <Reference Include="BepInEx" HintPath="$(SPTPath)\BepInEx\core\BepInEx.dll" />
+        <Reference Include="spt-reflection" HintPath="$(SPTPath)\BepInEx\plugins\spt\spt-reflection.dll" />
+        <Reference Include="$(Authors)-FeatureTweaks.Client"
+                   HintPath="..\..\Client\bin\$(Configuration)\netstandard2.1\$(Authors)-FeatureTweaks.Client.dll" />
+    </ItemGroup>
+</Project>

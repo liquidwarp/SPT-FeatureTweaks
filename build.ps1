@@ -10,14 +10,17 @@ param(
 
     [switch]$InstallServerMod,
 
-    [switch]$PackageRelease
+    [switch]$PackageRelease,
+
+    [switch]$Test
 )
 
 $ErrorActionPreference = 'Stop'
 
-if (-not (Test-Path "$SPTPath\EscapeFromTarkov_Data\Managed\Assembly-CSharp.dll")) {
+if (-not (Test-Path -LiteralPath "$SPTPath\EscapeFromTarkov_Data\Managed\Assembly-CSharp.dll")) {
     throw "SPT not found at '$SPTPath'"
 }
+$SPTPath = (Resolve-Path -LiteralPath $SPTPath).Path
 
 $buildArgs = @(
     "$PSScriptRoot\FeatureTweaks.slnx"
@@ -30,3 +33,13 @@ $buildArgs = @(
 )
 dotnet build @buildArgs
 if ($LASTEXITCODE -ne 0) { throw "dotnet build failed ($LASTEXITCODE)" }
+
+if ($Test) {
+    $testArgs = @(
+        "$PSScriptRoot\Tests\FeatureTweaks.Tests.slnx"
+        "-c", $Configuration
+        "-p:SPTPath=$SPTPath"
+    )
+    dotnet test @testArgs
+    if ($LASTEXITCODE -ne 0) { throw "FeatureTweaks tests failed ($LASTEXITCODE)" }
+}

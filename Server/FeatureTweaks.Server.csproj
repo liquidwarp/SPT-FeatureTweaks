@@ -8,6 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <InternalsVisibleTo Include="$(AssemblyName).Tests" />
         <PackageReference Include="SPTushonka.Reflection" Version="$(SPTPackageVersion)" />
         <PackageReference Include="SPTushonka.Server.Core" Version="$(SPTPackageVersion)" />
     </ItemGroup>

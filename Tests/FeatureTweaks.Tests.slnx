@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="../Client/FeatureTweaks.Client.csproj" />
+  <Project Path="../Server/FeatureTweaks.Server.csproj" />
+  <Project Path="Client/FeatureTweaks.Client.Tests.csproj">
+    <BuildDependency Project="../Client/FeatureTweaks.Client.csproj" />
+  </Project>
+  <Project Path="Server/FeatureTweaks.Server.Tests.csproj" />
+</Solution>

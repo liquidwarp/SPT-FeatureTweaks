@@ -1,3 +1,4 @@
+using System;
 using BepInEx;
 using BepInEx.Logging;
 using Newtonsoft.Json;
@@ -23,8 +24,12 @@ public class Plugin : BaseUnityPlugin
     private void Awake()
     {
         LogSource = Logger;
+        EnableConfiguredPatches(RequestHandler.GetJson);
+    }
 
-        var config = JsonConvert.DeserializeObject<ServerConfig>(RequestHandler.GetJson("/featuretweaks/config"));
+    internal static void EnableConfiguredPatches(Func<string, string> getJson)
+    {
+        var config = JsonConvert.DeserializeObject<ServerConfig>(getJson("/featuretweaks/config"));
 
         if (config.DisableFleaSelling)
         {
