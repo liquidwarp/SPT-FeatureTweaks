@@ -95,7 +95,7 @@ public class DatabaseTests : ConfigFixture
     [TestCase(null)]
     [TestCase("bad-id")]
     [TestCase("111111111111111111111111")]
-    public async Task UnavailableFragmentsLeaveTheOtherGrenadeStatsIntact(string? fragment)
+    public async Task UnavailableFragmentsLeaveTheOtherStatsIntact(string? fragment)
     {
         var props = new TemplateItemProperties
         {
@@ -104,9 +104,14 @@ public class DatabaseTests : ConfigFixture
         };
         var grenade = AddItem("Frag", BaseClasses.THROW_WEAP, props);
         var launcher = AddItem("Launcher", BaseClasses.AMMO, props with { FuzeArmTimeSec = 0.1 });
+        var bullet = AddItem("Bullet", BaseClasses.AMMO, props with
+        {
+            AmmoType = "bullet", HasGrenaderComponent = true, Damage = 40, PenetrationPower = 5
+        });
         await Apply(ModConfig.Default);
         Assert.That(NameOf(grenade), Is.EqualTo("Frag <color=#808080>[7m 4s]</color>"));
         Assert.That(NameOf(launcher), Is.EqualTo("Launcher <color=#808080>[7m]</color>"));
+        Assert.That(NameOf(bullet), Is.EqualTo("Bullet <color=#808080>[40/5] [7m]</color>"));
     }
 
     [Test]
@@ -122,17 +127,25 @@ public class DatabaseTests : ConfigFixture
         Assert.That(NameOf(grenade), Is.EqualTo("Frag <color=#808080>[7m 4s]</color>"));
     }
 
-    [TestCase(0, 4)]
-    [TestCase(0.1, 0)]
-    public async Task AmmoRequiresBothArmingTimeAndFragmentsToUseLauncherStats(double armingTime, int fragments)
+    [TestCase("grenade", 0, null, 4, "[4×21/5 8m]")]
+    [TestCase("bullet", 0.1, true, 4, "[4×21/5 8m]")]
+    [TestCase("bullet", 0, null, 4, "[33/2]")]
+    [TestCase("bullet", 0, false, 4, "[33/2]")]
+    [TestCase("bullet", 0, true, 4, "[33/2] [4×21/5 8m]")]
+    [TestCase("bullet", 0, true, 0, "[33/2]")]
+    [TestCase("grenade", 0.1, true, 0, "[33/2]")]
+    public async Task AmmoLabelsDistinguishImpactAndFragmentDamage(
+        string ammoType, double armingTime, bool? hasGrenaderComponent, int fragments, string expected)
     {
+        var fragment = AddItem("Fragment", BaseClasses.AMMO, new() { Damage = 21, PenetrationPower = 5 });
         var round = AddItem("Round", BaseClasses.AMMO, new()
         {
-            Damage = 33, PenetrationPower = 2, MaxExplosionDistance = 8,
-            FragmentsCount = fragments, FuzeArmTimeSec = armingTime
+            AmmoType = ammoType, Damage = 33, PenetrationPower = 2, MaxExplosionDistance = 8,
+            FragmentType = fragment, FragmentsCount = fragments, FuzeArmTimeSec = armingTime,
+            HasGrenaderComponent = hasGrenaderComponent
         });
         await Apply(ModConfig.Default);
-        Assert.That(NameOf(round), Is.EqualTo("Round <color=#808080>[33/2]</color>"));
+        Assert.That(NameOf(round), Is.EqualTo($"Round <color=#808080>{expected}</color>"));
     }
 
     [Test]
@@ -177,15 +190,20 @@ public class DatabaseTests : ConfigFixture
 
         const string buckshot = "560d5e524bdc2d25448b4571";
         const string gunpowder = "590c5a7286f7747884343aea";
+        const string shg2 = "67446fdd752be02c220f27b3";
         var original = _locales.Global.ToDictionary(pair => pair.Key, pair => pair.Value.Value!);
         var pellet = _items[buckshot].Properties!;
         var stats = FormattableString.Invariant($"[{pellet.Damage * pellet.ProjectileCount}/{pellet.PenetrationPower}]");
+        var rocket = _items[shg2].Properties!;
+        var fragment = _items[rocket.FragmentType!].Properties!;
+        var rocketStats = FormattableString.Invariant($"[{rocket.FragmentsCount}×{fragment.Damage}/{fragment.PenetrationPower} {rocket.MaxExplosionDistance}m]");
         Assert.That(pellet.ProjectileCount, Is.GreaterThan(1));
         await Apply(ModConfig.Default);
         foreach (var (language, before) in original)
         {
             Assert.That(NameOf(buckshot, language), Is.EqualTo($"{before[$"{buckshot} Name"]} <color=#808080>{stats}</color>"));
             Assert.That(NameOf(gunpowder, language), Is.EqualTo(before[$"{gunpowder} Name"]));
+            Assert.That(NameOf(shg2, language), Is.EqualTo($"{before[$"{shg2} Name"]} <color=#808080>{rocketStats}</color>"));
         }
     }
 

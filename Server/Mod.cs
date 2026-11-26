@@ -91,12 +91,18 @@ public class DatabaseTweaks(
         if (!itemHelper.IsOfBaseclass(item.Id, BaseClasses.AMMO))
             return null;
 
-        // Launcher grenades: the direct hit stats are not what we care about
-        if (props.FuzeArmTimeSec > 0 && props.FragmentsCount > 0)
-            return JoinStats(GetFragmentStats(props), Invariant($"{props.MaxExplosionDistance}m"));
+        var isGrenadeRound = props.AmmoType == "grenade" || props.FuzeArmTimeSec > 0;
+        if (props.FragmentsCount > 0 && (isGrenadeRound || props.HasGrenaderComponent is true))
+        {
+            var explosion = JoinStats(GetFragmentStats(props), Invariant($"{props.MaxExplosionDistance}m"));
+            return isGrenadeRound ? explosion : $"{GetImpactStats(props)} {explosion}";
+        }
 
-        return Invariant($"[{props.Damage * (props.ProjectileCount ?? 1)}/{props.PenetrationPower}]");
+        return GetImpactStats(props);
     }
+
+    private static string GetImpactStats(TemplateItemProperties props) =>
+        Invariant($"[{props.Damage * (props.ProjectileCount ?? 1)}/{props.PenetrationPower}]");
 
     private string? GetFragmentStats(TemplateItemProperties props)
     {
